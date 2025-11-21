@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { UserProfile, INITIAL_PROFILE } from './types';
 import { Button } from './components/ui/Button';
 import { ProfileEditor } from './components/editor/ProfileEditor';
@@ -7,11 +6,8 @@ import { ExperienceEditor } from './components/editor/ExperienceEditor';
 import { ProjectEditor } from './components/editor/ProjectEditor';
 import { EducationEditor } from './components/editor/EducationEditor';
 import { PortfolioPreview } from './components/preview/PortfolioPreview';
-import { Viewer } from './components/Viewer';
-import { savePortfolio, generateId } from './services/database';
 
-// The Editor Application
-const Builder = () => {
+function App() {
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('portfolio_data');
     return saved ? JSON.parse(saved) : INITIAL_PROFILE;
@@ -19,37 +15,10 @@ const Builder = () => {
 
   const [activeTab, setActiveTab] = useState<'profile' | 'experience' | 'projects' | 'education'>('profile');
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [publishedId, setPublishedId] = useState<string | null>(null);
-
-  // Determine a unique ID for this user (simulated auth)
-  useEffect(() => {
-    let myId = localStorage.getItem('my_portfolio_id');
-    if (!myId) {
-      myId = generateId();
-      localStorage.setItem('my_portfolio_id', myId);
-    }
-    setPublishedId(myId);
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('portfolio_data', JSON.stringify(profile));
   }, [profile]);
-
-  const handlePublish = async () => {
-    if (!publishedId) return;
-    setIsPublishing(true);
-    
-    const success = await savePortfolio(publishedId, profile);
-    
-    setIsPublishing(false);
-    if (success) {
-      // In a real app, you might show a toast notification here
-      alert(`Published Successfully! Your URL: ${window.location.origin}/p/${publishedId}`);
-    } else {
-      alert("Failed to save. Please try again.");
-    }
-  };
 
   const renderEditor = () => {
     switch (activeTab) {
@@ -71,9 +40,9 @@ const Builder = () => {
     return (
       <div className="h-screen w-full relative">
         <PortfolioPreview profile={profile} />
-        <div className="fixed bottom-6 right-6 z-50 flex gap-2">
+        <div className="fixed bottom-6 right-6 z-50">
           <Button onClick={() => setViewMode('edit')} className="shadow-2xl rounded-full px-6 py-3">
-            ✏️ Edit
+            ✏️ Back to Editor
           </Button>
         </div>
       </div>
@@ -86,45 +55,28 @@ const Builder = () => {
       <div className="w-full lg:w-[450px] xl:w-[500px] flex flex-col border-r border-slate-800 h-full">
         {/* Header */}
         <div className="p-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-gradient-to-br from-brand-500 to-purple-600"></div>
-              <h1 className="font-display font-bold text-xl tracking-tight">Portfol.io</h1>
-            </div>
-            <div className="flex gap-2">
-               {publishedId && (
-                 <Link to={`/p/${publishedId}`} target="_blank" className="text-xs text-slate-400 hover:text-white flex items-center gap-1 px-2">
-                   View Live ↗
-                 </Link>
-               )}
-               <Button 
-                size="sm" 
-                variant="primary" 
-                onClick={handlePublish} 
-                isLoading={isPublishing}
-                className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 border-0"
-              >
-                {isPublishing ? 'Publishing...' : 'Publish Site'}
-              </Button>
-            </div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-brand-500 to-purple-600"></div>
+            <h1 className="font-display font-bold text-xl tracking-tight">Portfol.io</h1>
           </div>
-          
-          {/* Navigation */}
-          <div className="flex p-1 bg-slate-900 rounded-lg gap-1 overflow-x-auto border border-slate-800">
-            {(['profile', 'experience', 'education', 'projects'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 min-w-[80px] py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
-                  activeTab === tab 
-                    ? 'bg-slate-800 text-white shadow-sm border border-slate-700' 
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          <p className="text-xs text-slate-400">AI-Powered Portfolio Builder</p>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex p-2 bg-slate-900/30 mx-4 mt-4 rounded-lg gap-1 overflow-x-auto">
+          {(['profile', 'experience', 'education', 'projects'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 min-w-[80px] py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+                activeTab === tab 
+                  ? 'bg-slate-800 text-white shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {/* Editor Content */}
@@ -132,36 +84,25 @@ const Builder = () => {
           {renderEditor()}
         </div>
 
-        {/* Footer Actions (Mobile) */}
+        {/* Footer Actions */}
         <div className="p-6 border-t border-slate-800 bg-slate-900/80 backdrop-blur flex justify-between items-center lg:hidden">
            <Button onClick={() => setViewMode('preview')} className="w-full">
              Preview Portfolio
            </Button>
         </div>
+        
+        <div className="hidden lg:flex p-4 bg-slate-900/50 text-[10px] text-slate-500 text-center justify-center">
+           Changes save automatically to local storage.
+        </div>
       </div>
 
       {/* Right Panel: Live Preview (Desktop Only) */}
-      <div className="hidden lg:block flex-1 bg-slate-900 h-full overflow-hidden relative p-8 flex flex-col">
-        <div className="flex justify-between items-center mb-4 px-2">
-          <span className="text-xs font-mono text-slate-500 uppercase">Live Preview</span>
-          {publishedId && <span className="text-xs font-mono text-slate-600">your-site.com/p/{publishedId}</span>}
-        </div>
-        <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-2xl ring-8 ring-slate-800">
+      <div className="hidden lg:block flex-1 bg-slate-900 h-full overflow-hidden relative">
+        <div className="absolute inset-4 bg-white rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-800/50">
           <PortfolioPreview profile={profile} />
         </div>
       </div>
     </div>
-  );
-};
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Builder />} />
-        <Route path="/p/:id" element={<Viewer />} />
-      </Routes>
-    </BrowserRouter>
   );
 }
 
