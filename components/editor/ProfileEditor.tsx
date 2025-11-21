@@ -62,6 +62,14 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
           value={profile.location} 
           onChange={(e) => handleChange('location', e.target.value)} 
         />
+        <div className="md:col-span-2">
+           <Input 
+            label="Profile Photo URL" 
+            value={profile.avatarUrl || ''} 
+            onChange={(e) => handleChange('avatarUrl', e.target.value)} 
+            placeholder="https://..."
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -83,6 +91,16 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ profile, onChange 
               </Button>
             }
           />
+      </div>
+
+      <div className="space-y-2">
+        <TextArea 
+          label="Professional Goals / Objective" 
+          value={profile.goals} 
+          onChange={(e) => handleChange('goals', e.target.value)}
+          rows={3}
+          placeholder="What are your career goals or next steps?"
+        />
       </div>
 
       <div className="space-y-2">
